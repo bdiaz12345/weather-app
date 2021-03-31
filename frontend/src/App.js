@@ -3,6 +3,7 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'weather-icons/css/weather-icons.css'
 
+import Form from './app_component/form.component'
 import Weather from './app_component/weather.component'
 
 const apiKey = '31d892105d74d696c444680762b4a100'
@@ -23,7 +24,6 @@ class App extends React.Component {
       description: '',
       error: false
     }
-    this.getWeather()
 
     this.weatherIcon = {
       Thunderstorm: 'wi-thunderstorm',
@@ -69,28 +69,40 @@ class App extends React.Component {
     }
   }
 
-  getWeather = async () => {
-    const apiCall = await fetch(`http://api.openweathermap.org/data/2.5/weather?q=London,uk&appid=${apiKey}`)
+  getWeather = async (e) => {
+    e.preventDefault()
 
-    const response = await apiCall.json()
+    const city = e.target.elements.city.value
 
-    console.log(response)
+    const country = e.target.elements.country.value
 
-    this.setState({
-      city: response.name,
-      country: response.sys.country,
-      celsius: this.calCelsius(response.main.temp),
-      temp_max: this.calCelsius(response.main.temp_max),
-      temp_min: this.calCelsius(response.main.temp_min),
-      description: response.weather[0].description
-    })
+    if (city && country) {
 
-    this.getWeatherIcon(this.weatherIcon, response.weather[0].id)
+      const apiCall = await fetch(`http://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${apiKey}`)
+
+      const response = await apiCall.json()
+
+      console.log(response)
+
+      this.setState({
+        city: `${response.name}, ${response.sys.country}`,
+        celsius: this.calCelsius(response.main.temp),
+        temp_max: this.calCelsius(response.main.temp_max),
+        temp_min: this.calCelsius(response.main.temp_min),
+        description: response.weather[0].description,
+        error: false
+      })
+
+      this.getWeatherIcon(this.weatherIcon, response.weather[0].id)
+    } else {
+      this.setState({error: true})
+    }
   }
 
   render() {
     return (
       <div className="App">
+        <Form loadweather={this.getWeather} error={this.state.error} />
         <Weather 
         city={this.state.city} 
         country={this.state.country} 
